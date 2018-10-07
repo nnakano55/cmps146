@@ -68,7 +68,7 @@ def dijkstras_shortest_path(initial_position, destination, graph, adj):
             path_dict[u] = list()
 
         nav_edge = adj(level, u)
-        print(str(len(pq)) + " : " + str(u[0]) + ", " + str(u[1]))
+        #print(str(len(pq)) + " : " + str(u[0]) + ", " + str(u[1]))
         #loop through each edge 
         for edge in nav_edge:
             v, weight = edge[0], edge[1]
@@ -84,7 +84,7 @@ def dijkstras_shortest_path(initial_position, destination, graph, adj):
                     heappush(pq, (v, vert[v]))
 
                 if v == destination:
-                    print("destination reached")
+                    #print("destination reached")
                     pq = []
                     switch 
                     reach_dest = 1
@@ -93,7 +93,7 @@ def dijkstras_shortest_path(initial_position, destination, graph, adj):
 
     # the list to be returned 
     ret_list = list()
-   
+
     # if the destination was found, backtrack the dictionary to find the path
     if reach_dest:
 
@@ -106,7 +106,7 @@ def dijkstras_shortest_path(initial_position, destination, graph, adj):
         while current_coord != initial_position:
             
             lowweight, maxcoord, at_least_one = inf, (), 0
-            print(str(current_coord[0]) + ", " + str(current_coord[1]) + " : " + str(initial_position[0]) + ", " + str(initial_position[1]))
+            #print(str(current_coord[0]) + ", " + str(current_coord[1]) + " : " + str(initial_position[0]) + ", " + str(initial_position[1]))
             # iterate through each item inside the path_dict dictionary 
             for key, value in path_dict.items():
                 for v in value:
@@ -270,7 +270,7 @@ def get_cell_type(level, coord):
 
 if __name__ == '__main__':
 
-    filename, src_waypoint, dst_waypoint = 'test_maze.txt', 'a','d'
+    filename, src_waypoint, dst_waypoint = 'my_maze.txt', 'a','d'
     
     #file_directory = "../input/"
     level = load_level(filename)
