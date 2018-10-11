@@ -4,8 +4,7 @@ import pickle
 import traceback
 import tkinter
 
-import p2_pathfinder
-import segment_path
+import p2_pathfinder_2
 
 if len(sys.argv) != 4:
     print("usage: %s map.gif map.mesh.pickle subsample_factor" % sys.argv[0])
@@ -38,23 +37,25 @@ path = []
 
 
 def redraw():
-
+    print("redraw")
     canvas.delete(tkinter.ALL)
     canvas.create_image((0,0), anchor=tkinter.NW, image=small_image)
 
     for box in visited_boxes:
         x1,x2,y1,y2 = shrink(box)
         canvas.create_rectangle(y1,x1,y2,x2,outline='pink')
-    print("path")
-    print(path)
-    print(segment_path.segment_path(path))
-    for segment in segment_path.segment_path(path[:-1]):
-        print(segment)
-        if segment[0] is not None and segment[1] is not None:
-            x1,y1 = shrink(segment[0])
-            x2,y2 = shrink(segment[1])
-            canvas.create_line(y1,x1,y2,x2,width=2.0,fill='red')
 
+    count = 1    
+    for segment in path:
+        x1,y1 = shrink(segment[0])
+        x2,y2 = shrink(segment[1])
+        canvas.create_line(y1,x1,y2,x2,width=2.0,fill='red')
+        #debug circles 
+        """
+        canvas.create_oval(y1-5 * count,x1-5 * count,y1+5 * count,x1+5 * count,width=2,outline='red')
+        canvas.create_oval(y2-5 * count,x2-5 * count,y2+5 * count,x2+5 * count,width=2,outline='red')
+        count += 0.2
+        """
     if source_point:
         x,y = shrink(source_point)
         canvas.create_oval(y-5,x-5,y+5,x+5,width=2,outline='red')
@@ -69,22 +70,18 @@ def on_click(event):
     global source_point, destination_point, visited_boxes, path
 
     if source_point and destination_point:
-        print("if1")
         source_point = None
         destination_point = None
         visited_boxes = []
         path = []
 
     elif not source_point:
-        print("elif")
         source_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
 
     else:
-        print("else")
         destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
         try:
-            path, visited_boxes = p2_pathfinder.find_path(source_point, destination_point, mesh)
-            print(path)
+            path, visited_boxes = p2_pathfinder_2.find_path(source_point, destination_point, mesh)
         except:
             destination_point = None
             traceback.print_exc()
