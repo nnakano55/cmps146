@@ -5,6 +5,7 @@ import traceback
 import tkinter
 
 import p2_pathfinder
+import segment_path
 
 if len(sys.argv) != 4:
     print("usage: %s map.gif map.mesh.pickle subsample_factor" % sys.argv[0])
@@ -44,11 +45,15 @@ def redraw():
     for box in visited_boxes:
         x1,x2,y1,y2 = shrink(box)
         canvas.create_rectangle(y1,x1,y2,x2,outline='pink')
-
-    for segment in path:
-        x1,y1 = shrink(segment[0])
-        x2,y2 = shrink(segment[1])
-        canvas.create_line(y1,x1,y2,x2,width=2.0,fill='red')
+    print("path")
+    print(path)
+    print(segment_path.segment_path(path))
+    for segment in segment_path.segment_path(path[:-1]):
+        print(segment)
+        if segment[0] is not None and segment[1] is not None:
+            x1,y1 = shrink(segment[0])
+            x2,y2 = shrink(segment[1])
+            canvas.create_line(y1,x1,y2,x2,width=2.0,fill='red')
 
     if source_point:
         x,y = shrink(source_point)
@@ -64,19 +69,22 @@ def on_click(event):
     global source_point, destination_point, visited_boxes, path
 
     if source_point and destination_point:
+        print("if1")
         source_point = None
         destination_point = None
         visited_boxes = []
         path = []
 
     elif not source_point:
+        print("elif")
         source_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
 
     else:
+        print("else")
         destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
         try:
             path, visited_boxes = p2_pathfinder.find_path(source_point, destination_point, mesh)
-
+            print(path)
         except:
             destination_point = None
             traceback.print_exc()
