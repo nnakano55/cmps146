@@ -4,7 +4,7 @@ import pickle
 import traceback
 import tkinter
 
-import p2_pathfinder_2
+import p2_pathfinder
 
 if len(sys.argv) != 4:
     print("usage: %s map.gif map.mesh.pickle subsample_factor" % sys.argv[0])
@@ -81,7 +81,7 @@ def on_click(event):
     else:
         destination_point = event.y*SUBSAMPLE, event.x*SUBSAMPLE
         try:
-            path, visited_boxes = p2_pathfinder_2.find_path(source_point, destination_point, mesh)
+            path, visited_boxes = p2_pathfinder.find_path(source_point, destination_point, mesh)
         except:
             destination_point = None
             traceback.print_exc()
