@@ -5,7 +5,7 @@ from math import sqrt, log
 
 num_nodes = 1000
 explore_faction = 2.
-#random comment
+#random comment and more random comment 
 def traverse_nodes(node, board, state, identity):
     """ Traverses the tree until the end criterion are met.
 
