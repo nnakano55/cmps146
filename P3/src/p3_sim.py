@@ -15,6 +15,7 @@ players = dict(
 
 board = p3_t3.Board()
 state0 = board.starting_state()
+print(board.legal_actions(state0))
 
 if len(sys.argv) != 3:
     print("Need two player arguments")
