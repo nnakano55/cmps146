@@ -43,12 +43,14 @@ for i in range(rounds):
     print("Round %d, fight!" % i)
 
     state = state0
+
     last_action = None
     current_player = player1
     while not board.is_ended(state):
         last_action = current_player(board, state)
         state = board.next_state(state, last_action)
         current_player = player1 if current_player == player2 else player2
+        print(state)
     print("Finished!")
     print()
     final_score = board.points_values(state)
