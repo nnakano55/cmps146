@@ -6,53 +6,66 @@ from math import sqrt, log
 num_nodes = 1000
 explore_factor = 2.
 
-def traverse_nodes(node, board, state, identity):
+def traverse_nodes(node, board, state, original_id, pointer_id):
     """ Traverses the tree until the end criterion are met.
 
     Args:
         node:       A tree node from which the search is traversing.
         board:      The game setup.
         state:      The state of the game.
-        identity:   The bot's identity, either 'red' or 'blue'.
+        identity:   The bot's identity, either 1 or 2.
 
     Returns:        A node from which the next stage of the search can proceed.
 
     """
+    '''ret_node = node                     # End result node. 
+    if board.is_ended(state) or len(ret_node.untried_actions) != 0:           # Stop if the game has ended at this point.
+        return ret_node
+    else: 
+        #while len(ret_node.untried_actions) == 0 and len(ret_nodes.child_nodes) != 0:
+        ret_children = ret_node.child_nodes
+        ret_weights = {}
+        for act in ret_node.untried_actions:
+            child = ret_children[act]
+            if pointer_id == original_id:
+                ret_weights[child] = child.wins/child.visits + sqrt(2*log(ret_node.visits)/child.visits)
+            else:
+                ret_weights[child] = (1 - (child.wins/child.visits)) + sqrt(2*log(ret_node.visits)/child.visits)
+        #state = board.next_state(state, ret_node.parent_action)
+        best_weight = float('-inf')
+        for act in ret_weights:
+            if ret_weights[act] > best_weight:
+                ret_node = ret_children[act]
+    return ret_node'''
+    #print("ReCurse")
     ret_node = node                     # End result node. Determined recursively.
+    ret_state = state
+    ret_id = pointer_id
     pointer_state = state               # The game state of this node.  
     child_weights = {}                  # Action -> Weight (float chance for corresponding Action)
     
-    if board.is_ended(pointer_state):           # Stop if the game has ended at this point.
-        return ret_node
-    elif len(ret_node.untried_actions) != 0:    # Stop if the current node has untried actions.
-        return ret_node
+    if board.is_ended(state) or len(ret_node.untried_actions) != 0 or len(board.legal_actions(state)) == 0:           # Stop if the game has ended at this point.
+        return ret_node, ret_state, ret_id
     else:                                       # Else, we do a weighted selection of child nodes.
         # Calculate the weights of every possible child traversal.
-        child_weights = calculate_ucb(ret_node, identity)
+        child_weights = calculate_ucb(ret_node, original_id, pointer_id)
     
         # Now, based on weights calculated, choose an Action and run traverse_nodes with the chosen action.
-        #============================================================================================================
-        # TA QUESTION: Do we need weighted RNG choice, or does the UCB function already account for exploration rate?
-        #============================================================================================================
-        #chosen_action = choices(population=child_weights.keys(), weights=child_weights.values(), k=1)[0]
         chosen_action = None
         chosen_weight = float('-inf')
         for action in child_weights:
-            if child_weights[action] > chosen_weight:
-                #print("PREV WEIGHT: " + str(chosen_weight))
+            if child_weights[action] >= chosen_weight:
                 chosen_action = action
                 chosen_weight = child_weights[action]
-                #print("BEST WEIGHT: " + str(chosen_weight))
         chosen_node = ret_node.child_nodes[chosen_action]
-        #print("Chosen action: " + str(chosen_action))
-        
+
         # Explore the next chosen node recursively.
         #print("=========== CONTINUE! ===========")
-        ret_node = traverse_nodes(chosen_node, board, board.next_state(state, chosen_action), identity)
+        ret_node, ret_state, ret_id = traverse_nodes(chosen_node, board, board.next_state(state, chosen_action), original_id, 3 - pointer_id)
 
-    return ret_node
-    
-def calculate_ucb(root_node, identity):
+    return ret_node, ret_state, ret_id
+
+def calculate_ucb(root_node, original_id, pointer_id):
     """ Take the given dictionary of nodes (Action -> Node), and calculate/map weights.
     
     Args:
@@ -62,28 +75,19 @@ def calculate_ucb(root_node, identity):
     Returns: a Dict of Action -> Float weights
     
     """
+    #print("UCB")
     child_nodes = root_node.child_nodes
     child_weights = {}
     # For every child node of this node, gets weights of each.
-    for child in child_nodes:     
-        # Determine wins based on identity.
-        # Wins of Player 1 are stored by default, so if the player is 2, p2_wins = visits - wins
-        if identity == 2:
-            child_wins = child_nodes[child].visits - child_nodes[child].wins
-        else:
-            child_wins = child_nodes[child].wins
-            
+    for child in child_nodes:      
+        child_wins = child_nodes[child].wins
         child_visits = child_nodes[child].visits
         parent_visits = root_node.visits
         ex_factor = explore_factor
-        if child_visits == 0 or parent_visits == 0:
-            #============================================================================================================
-            # TA QUESTION: What do we do if the node has no wins or visits?
-            #============================================================================================================
-            child_weights[child] = 1.0     # this node is untouched and can be chosen randomly
-        else:
-            # Action (child) is mapped -> with a Weight (Upper Confidence Bounds equation).
+        if pointer_id == original_id:
             child_weights[child] = (child_wins / child_visits) + (ex_factor * sqrt(log(parent_visits) / child_visits))
+        else:
+            child_weights[child] = (1 - (child_wins / child_visits)) + (ex_factor * sqrt(log(parent_visits) / child_visits))
         
     return child_weights
 
@@ -99,16 +103,17 @@ def expand_leaf(node, board, state):
 
     """
     if len(node.untried_actions) == 0:
-        #print("Node has no possible action.")
+        print("Node has no possible action")
         return None 
     action = choice(node.untried_actions)
     act_list = board.legal_actions(board.next_state(state, action))
     new_node = MCTSNode(parent=node, parent_action = action, action_list = act_list)
     node.child_nodes[action] = new_node
-    #print("NEW CHILD NODE: " + str(node.child_nodes[action]))
     node.untried_actions.remove(action)
+    state = board.next_state(state, action)
     return new_node
     # Hint: return new_node
+
 
 def rollout(board, state):
     """ Given the state of the game, the rollout plays out the remainder randomly.
@@ -118,43 +123,8 @@ def rollout(board, state):
         state:  The state of the game.
 
     """
-    moves = board.legal_actions(state)
-    win_game_red = False
-    me = board.current_player(state)
-
-    # Define a helper function to calculate the difference between the bot's score and the opponent's.
-    # This is the outcome of whether or not player 1 / X / red will win.
-    def outcome(owned_boxes, game_points):
-        if game_points is not None:
-            # Try to normalize it up?  Not so sure about this code anyhow.
-            red_score = game_points[1]*9
-            blue_score = game_points[2]*9
-        else:
-            red_score = len([v for v in owned_boxes.values() if v == 1])
-            blue_score = len([v for v in owned_boxes.values() if v == 2])
-        return red_score - blue_score 
-        
-    # Randomly choose a move from moves to proceed with.
-    move = choice(moves)    # ERROR: May throw IndexError from not being able to choose from an empty sequence
-    total_score = 0.0
-    rollout_state = board.next_state(state, move)
-
-    # Play to the end randomly, without heuristics.
-    while True:
-        if board.is_ended(rollout_state):
-            break
-        rollout_move = choice(board.legal_actions(rollout_state))
-        rollout_state = board.next_state(rollout_state, rollout_move)
-
-    # Get difference between outcomes.
-    total_score += outcome(board.owned_boxes(rollout_state),
-                           board.points_values(rollout_state))
-
-    # The red player wins if they have a positive difference compared to the opponent
-    if total_score > 0:
-        win_game_red = True
-
-    return win_game_red
+    state = board.next_state(state, choice(board.legal_actions(state)))
+    return state
 
 
 def backpropagate(node, won):
@@ -165,11 +135,8 @@ def backpropagate(node, won):
         won:    An indicator of whether the bot won or lost the game.
 
     """
-    while node.parent != None:
-        node.visits += 1
-        if won:
-            node.wins += 1
-        node = node.parent
+    node.visits += 1
+    node.wins += won
     pass
 
 
@@ -183,9 +150,9 @@ def think(board, state):
     Returns:    The action to be taken.
 
     """
-    identity_of_bot = board.current_player(state)   # 1 = X / red, 2 = O / blue
+    identity_of_bot = board.current_player(state)
     root_node = MCTSNode(parent=None, parent_action=None, action_list=board.legal_actions(state))
-
+    
     for step in range(num_nodes):
         # Copy the game for sampling a playthrough
         sampled_game = state
@@ -195,38 +162,65 @@ def think(board, state):
 
         # Do MCTS - This is all you!
         # my guess of how its suppose to be run, might change later 
-        node = traverse_nodes(node, board, state, identity_of_bot)
-        node = expand_leaf(node, board, state)
-        if node:
-            won = rollout(board, board.next_state(state, node.parent_action))
-            backpropagate(node, won)
-            node = root_node
-        else:
-            node = root_node
-            break   # Game's over, stop.
         
-        #print(node.child_nodes)
+        # ==== TRAVERSE ==== #
+        #print("Traverse")
+        original_id = identity_of_bot
+        pointer_id = identity_of_bot
+        while len(node.untried_actions) == 0 and len(board.legal_actions(sampled_game)) > 0 and not board.is_ended(sampled_game):
+            node, sampled_game, pointer_id = traverse_nodes(node, board, sampled_game, original_id, pointer_id)
+            #sampled_game = board.next_state(sampled_game, node.parent_action)
+                #chosen_action = node.parent_action
+                #pointer_id = 3 - pointer_id
+            
+        # ==== EXPAND ==== #
+        #print("Expand")
+        if len(node.untried_actions) != 0:
+            node = expand_leaf(node, board, sampled_game)
+            sampled_game = board.next_state(sampled_game, node.parent_action)
+            #if node.parent.parent_action == None:
+                #chosen_action = node.parent_action
+            #pointer_id = 3 - pointer_id
+            
+        # ==== ROLLOUT ==== #
+        #print("Rollout")
+        while not board.is_ended(sampled_game):
+            #print("ORIGINAL STATE: " + str(sampled_game))
+            sampled_game = rollout(board, sampled_game)
+            #print("NEW STATE: " + str(sampled_game))
+            #pointer_id = 3 - pointer_id
+            
+        # ==== BACKPROPGATE === #
+        #print("BackProp")
+        won = board.win_values(sampled_game)[identity_of_bot]
+        while node != None:
+            backpropagate(node, won)
+            node = node.parent
+            #pointer_id = 3 - pointer_id
+        #print("Step: " + str(step))
 
     # Return an action, typically the most frequently used action (from the root) or the action with the best
     # estimated win rate.
     
     # With the completed tree, get the action with the best rate.
+    node = root_node
     best_action = None
     best_rate = float('-inf')
+    best_wins = 0
     highest_visits = 0
-    #print(node.child_nodes)
     for child in node.child_nodes:
-        if identity_of_bot == 2:
-            child_wins = node.child_nodes[child].visits - node.child_nodes[child].wins
-        else:
-            child_wins = node.child_nodes[child].wins
-        child_rate = child_wins / node.child_nodes[child].visits
-        child_visits = node.child_nodes[child].visits
-        if child_rate > best_rate and child_visits >= highest_visits:
+        r = node.child_nodes[child]
+        child_wins = r.wins
+        child_visits = r.visits
+        #print(str(child) + ": " + str(child_wins) + " / " + str(child_visits))
+        #win_rate = child_wins / child_visits
+        if best_action == None:
             best_action = child
-            best_rate = child_rate
+        if child_wins > best_wins and child_visits >= highest_visits:
+            best_action = child
+            best_wins = child_wins
+            #best_rate = child_wins
             #print("BEST: " + str(best_rate))
             highest_visits = child_visits
-    
-    print("MCTS Vanilla bot " + str(identity_of_bot) + " picking %s with expected win rate %f" % (str(best_action), best_rate))
+    print("MCTS Vanilla bot " + str(identity_of_bot) + " picking %s with expected win score %f" % (str(best_action), best_wins))
     return best_action

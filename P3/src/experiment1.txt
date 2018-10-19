@@ -1,0 +1,27 @@
+Test 1: 
+mcts_vanilla    -> 100 nodes
+mcts_vanilla_2  -> 10  nodes
+Result:
+Final win counts: {'draw': 3, 1: 93, 2: 4}
+218.47032535  seconds
+
+Test 2: 
+mcts_vanilla    -> 100 nodes
+mcts_vanilla_2  -> 50  nodes
+Result:
+Final win counts: {'draw': 12, 1: 66, 2: 22}
+299.476796332  seconds
+
+Test 3: 
+mcts_vanilla    -> 100 nodes
+mcts_vanilla_2  -> 100 nodes
+Result:
+Final win counts: {'draw': 8, 1: 51, 2: 41}
+387.579547047  seconds
+
+Test 4: 
+mcts_vanilla    -> 100 nodes
+mcts_vanilla_2  -> 200 nodes
+Result:
+Final win counts: {'draw': 16, 1: 19, 2: 65}
+571.1235195529999  seconds
