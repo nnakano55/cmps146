@@ -49,7 +49,7 @@ def planet_distance(src, dst):
 
 def spread_to_weakest_and_closest_planet(state):
 
-
+    
     close_and_weak = None
     close_and_weak_dst = float("inf")
 
@@ -62,6 +62,21 @@ def spread_to_weakest_and_closest_planet(state):
 
     #now check planets that are not mine
     for planets in state.not_my_planets():
+        # Noriaki comment:
+        # needs to actually spread, use fleet and check if fleet have already been sent
+        
+        """
+        psedocode(something like this?):
+        for some_sort_of_loop_to_keep_looping_weakest & closest in order:
+            count = 0
+            for fleet in state.my_fleets():
+                if strongest_planet.ID == fleet.source_planet.ID and close_and_weak.ID == fleet.destination_planet.ID:
+                    count++
+            if counter == 0:
+                return issue_order(state, strongest_planet.ID, close_and_weak.ID, close_and_weak.num_ships * 2)
+        
+        """
+
         #get a combined value that will determine if this planet is weak and has a small fleet
         dst = planet_distance(strongest_planet, planets) + planets.num_ships
 

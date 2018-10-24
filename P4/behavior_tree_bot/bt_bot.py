@@ -39,7 +39,7 @@ def setup_behavior_tree():
     spread_close_action = Action(spread_to_weakest_and_closest_planet)
     spread_close.child_nodes = [spread_close_action]
 
-    root.child_nodes = [offensive_plan, spread_close, spread_sequence]
+    root.child_nodes = [offensive_plan, spread_sequence, spread_close]
 
     logging.info('\n' + root.tree_to_string())
     return root
