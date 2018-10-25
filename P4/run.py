@@ -43,13 +43,16 @@ def test(bot, opponent_bot, map_num):
             break
         elif 'Player 1 Wins!' in line:
             print(bot_name,'wins!')
-            break
+            return 1
+            #break
         elif 'Player 2 Wins!' in line:
             print(opponent_name,'wins!')
-            break
+            return 0
+            #break
 
         if return_code is not None:
             break
+    return 0
 
 
 if __name__ == '__main__':
@@ -58,16 +61,22 @@ if __name__ == '__main__':
                  'opponent_bots/spread_bot.py',
                  'opponent_bots/aggressive_bot.py',
                  'opponent_bots/defensive_bot.py',
-                 'opponent_bots/production_bot.py']
+                 'opponent_bots/production_bot.py'
+                 ]
 
-    maps = [71, 13, 24, 56, 7]
+    maps = [71, 50, 24, 56, 7]
 
     my_bot = 'behavior_tree_bot/bt_bot.py'
     show = len(sys.argv) < 2 or sys.argv[1] == "show"
-    for opponent, map in zip(opponents, maps):
+    show = False
+    botwin = 0
+    for opponent in [opponents[0]]:
         # use this command if you want to observe the bots
-        if show:
-            show_match(my_bot, opponent, map)
-        else:
-            # use this command if you just want the results of the matches reported
-            test(my_bot, opponent, map)
+        for i in range(100):
+            if show:
+                show_match(my_bot, opponent, i)
+            else:
+                # use this command if you just want the results of the matches reported
+                botwin += test(my_bot, opponent, i)
+
+    print(botwin)
