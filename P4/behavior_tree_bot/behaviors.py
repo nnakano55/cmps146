@@ -66,7 +66,7 @@ def spread_to_weakest_and_closest_planet(state):
         # needs to actually spread, use fleet and check if fleet have already been sent
         
         """
-        psedocode(something like this?):
+        psedocode(something like this? probably better if a fleet dictionary is created):
         for some_sort_of_loop_to_keep_looping_weakest & closest in order:
             count = 0
             for fleet in state.my_fleets():

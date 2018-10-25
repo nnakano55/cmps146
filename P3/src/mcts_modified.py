@@ -3,7 +3,7 @@ from mcts_node import MCTSNode
 from random import choice
 from math import sqrt, log
 
-num_nodes = 100
+num_nodes = 1000
 explore_factor = 2.
 
 def traverse_nodes(node, board, state, original_id, pointer_id):
@@ -125,19 +125,30 @@ def rollout(board, state):
     """
     actions = board.legal_actions(state)
     action = choice(actions)
-    """ take middle rollout
+    #""" take middle rollout, the rollout will choose the middle when possible
     for act in actions:
-        if act[0] == 1 and act[1] == 1 and act[2] == 1 and act[3] == 1:
-            return board.next_state(state, act)
-        elif act[2] == 1 and act[3] == 1:
-            action = act
-    """
-    #""" intercept rollout
-    full_action = [(0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)]
-    reach = {(0,0):[(0,1),(0,2),(1,1),(2,2),(1,0),(2,0)]}
+        if act[2] == 1 and act[3] == 1:
+            return board.next_state(state,act)
+    #"""
+    #print("state: ", state)
+    """ intercept/finish rollout
+    concat = []
     for act in actions:
-        full_action.remove(act[2:4])
+        concat.append(act[2:4])
+    full_action = ((0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2))
+    movement = ((0,1,2),(3,4,5),(6,7,8),(0,3,6),(1,4,7),(2,5,8),(0,4,8),(2,4,6))
 
+    for move in movement:
+        counter = 0
+        index = 0
+        for i in move:
+            if i in concat:
+                counter += 1
+                index = i
+        
+        if counter == 1:
+            return board.next_state(state, actions[concat.index(move[index])])
+    #"""
 
     return board.next_state(state, action)
 
@@ -237,5 +248,5 @@ def think(board, state):
             #best_rate = child_wins
             #print("BEST: " + str(best_rate))
             highest_visits = child_visits
-    print("MCTS Vanilla bot " + str(identity_of_bot) + " picking %s with expected win score %f" % (str(best_action), best_wins))
+    print("MCTS Modified bot " + str(identity_of_bot) + " picking %s with expected win score %f" % (str(best_action), best_wins))
     return best_action

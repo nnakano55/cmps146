@@ -1,0 +1,30 @@
+Test 1:
+mcts_modified	-> 100 nodes
+mcts_vanilla 	-> 100 nodes
+Result:
+Final win counts: {'draw': 14, 1: 47, 2: 39}
+470.667936723638  seconds
+
+Test 2:
+mcts_vanilla	-> 100 nodes
+mcts_modified	-> 100 nodes
+Result:
+Final win counts: {'draw': 16, 1: 47, 2: 37}
+539.0639186085642  seconds
+
+Test 3:
+mcts_modified	-> 200 nodes
+mcts_vanilla 	-> 200 nodes
+Result:
+Final win counts: {'draw': 6, 1: 47, 2: 47}
+866.5674726187074  seconds
+
+Test 4:
+mcts_vanilla	-> 200 nodes
+mcts_modified 	-> 200 nodes
+Result:
+Final win counts: {'draw': 10, 1: 46, 2: 44}
+901.2401540108489  seconds
+
+Conclusion: The game seems to favor the player who goes first. The more nodes there are
+it seems that the winrate closer to 50/50.
