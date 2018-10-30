@@ -70,7 +70,7 @@ if __name__ == '__main__':
     show = len(sys.argv) < 2 or sys.argv[1] == "show"
     show = False
     botwin = 0
-    for opponent in [opponents[0]]:
+    for opponent in [opponents[4]]:
         # use this command if you want to observe the bots
         for i in range(100):
             if show:

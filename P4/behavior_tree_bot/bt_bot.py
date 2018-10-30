@@ -20,26 +20,40 @@ from planet_wars import PlanetWars, finish_turn
 
 # You have to improve this tree or create an entire new one that is capable
 # of winning against all the 5 opponent bots
+
+
+#startegy is attacking at start if planets are close
+#if not close, spread
+#have seven plaents => start attacking enemies
 def setup_behavior_tree():
 
     # Top-down construction of behavior tree
     root = Selector(name='High Level Ordering of Strategies')
 
     offensive_plan = Sequence(name='Offensive Strategy')
-    largest_fleet_check = Check(have_largest_fleet)
-    attack = Action(attack_weakest_enemy_planet)
+    largest_fleet_check = Check(starting_position_close)
+    attack = Action(attack_start)
     offensive_plan.child_nodes = [largest_fleet_check, attack]
 
-    spread_sequence = Sequence(name='Spread Strategy')
-    neutral_planet_check = Check(if_neutral_planet_available)
-    spread_action = Action(spread_to_weakest_neutral_planet)
-    spread_sequence.child_nodes = [neutral_planet_check, spread_action]
+    """
+    this shouldn't have to be ever used. at all.
+    spread_sequence = Sequence(name='Defense Strategy')
+    spread_action = Action(defend)
+    defend_check =  Check(have_five_planets)
+    spread_sequence.child_nodes = [defend_check, spread_action]
+    """
 
     spread_close = Sequence(name='Spreading Strategy')
     spread_close_action = Action(spread_to_weakest_and_closest_planet)
     spread_close.child_nodes = [spread_close_action]
 
-    root.child_nodes = [offensive_plan, spread_close, spread_sequence]
+    attack = Sequence(name= 'Attack Strategy')
+    attack_action = Action(attack_them)
+    attack_check = Check(have_five_planets)
+    attack.child_nodes = [attack_check, attack_action]
+
+
+    root.child_nodes = [offensive_plan, spread_close, attack]
 
     logging.info('\n' + root.tree_to_string())
     return root
@@ -47,6 +61,7 @@ def setup_behavior_tree():
 # You don't need to change this function
 def do_turn(state):
     behavior_tree.execute(planet_wars)
+
 
 if __name__ == '__main__':
     logging.basicConfig(filename=__file__[:-3] + '.log', filemode='w', level=logging.DEBUG)
