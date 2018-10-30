@@ -1,6 +1,11 @@
 import json
+
 from collections import namedtuple, defaultdict, OrderedDict
 from timeit import default_timer as time
+
+#additional imports 
+import heapq
+import math
 
 Recipe = namedtuple('Recipe', ['name', 'check', 'effect', 'cost'])
 
@@ -41,8 +46,19 @@ def make_checker(rule):
     def check(state):
         # This code is called by graph(state) and runs millions of times.
         # Tip: Do something with rule['Consumes'] and rule['Requires'].
-        return True
+        if rule.get('Requires'):
+            for k, v in rule['Requires'].items():
+                #can be if because should be only one anyway 
+                if state[k] < (1 if v is True else 0):
+                    return False
 
+        if rule.get('Consumes'):
+            for k, v in rule['Consumes'].items():
+                #print(state[k], ', ', v)
+                if state[k] < v:  
+                    return False
+
+        return True
     return check
 
 
@@ -54,7 +70,15 @@ def make_effector(rule):
     def effect(state):
         # This code is called by graph(state) and runs millions of times
         # Tip: Do something with rule['Produces'] and rule['Consumes'].
-        next_state = None
+        next_state = state.copy()
+        
+        for k, v in rule['Produces'].items():
+            next_state[k] += v
+
+        if rule.get('Consumes'):
+            for k, v in rule['Consumes'].items():
+                next_state[k] -= v
+
         return next_state
 
     return effect
@@ -66,7 +90,10 @@ def make_goal_checker(goal):
 
     def is_goal(state):
         # This code is used in the search process and may be called millions of times.
-        return False
+        for k, v in goal.items():
+            if state[k] != v:
+                return False
+        return True
 
     return is_goal
 
@@ -75,14 +102,26 @@ def graph(state):
     # Iterates through all recipes/rules, checking which are valid in the given state.
     # If a rule is valid, it returns the rule's name, the resulting state after application
     # to the given state, and the cost for the rule.
+
     for r in all_recipes:
         if r.check(state):
             yield (r.name, r.effect(state), r.cost)
 
 
+Tools = [
+    "bench",
+    "iron_axe",
+    "iron_pickaxe",
+    "stone_axe",
+    "stone_pickaxe",
+    "wooden_axe",
+    "wooden_pickaxe"
+]
+
 def heuristic(state):
     # Implement your heuristic here!
-    return 0
+    cost = 0
+    return cost
 
 def search(graph, state, is_goal, limit, heuristic):
 
@@ -92,9 +131,18 @@ def search(graph, state, is_goal, limit, heuristic):
     # When you find a path to the goal return a list of tuples [(state, action)]
     # representing the path. Each element (tuple) of the list represents a state
     # in the path and the action that took you to this state
-    while time() - start_time < limit:
-        pass
 
+    while time() - start_time < limit:
+        if is_goal(state):
+            return state
+        possible = graph(state)
+        queue = []
+        heapq.heapify(queue)
+        for pos in possible:
+            f_value = heuristic(pos[1]) + pos[2]
+            heapq.heappush(queue, (f_value, pos[1]))
+        state = heapq.heappop(queue)[1]
+        
     # Failed to find a path
     print(time() - start_time, 'seconds.')
     print("Failed to find a path from", state, 'within time limit.')
