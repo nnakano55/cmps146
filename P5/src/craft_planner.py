@@ -90,7 +90,7 @@ def make_goal_checker(goal):
     def is_goal(state):
         # This code is used in the search process and may be called millions of times.
         for k, v in goal.items():
-            if state[k] <= v:
+            if state[k] < v:
                 return False
         return True
 
@@ -118,15 +118,40 @@ Tools = [
     "furnace"
 ]
 
+Goals = {}
+
+#"""
+
+def heuristic(state):
+    cost = 0
+    for k, v in state.items():
+        
+        if k in Tools and v > 1:
+            cost += 100
+        elif v > 8 and not Goals.get(k):
+            cost += v
+        elif Goals.get(k):
+            if Goals.get(k) + 16 <= v:
+                cost += (v - Goals.get(k))
+            elif Goals.get(k) > v:
+                cost += (Goals.get(k) - v)
+
+    return cost
+"""
+
 def heuristic(state):
     # Implement your heuristic here!
     cost = 0
     for k, v in state.items():
-        if v > 9:
+        if v > 9 and not Goals.get(k):
             cost += 5
         if k in Tools and v > 1:
             cost += 10
+        if Goals.get(k) and Goals.get(k) >= v:
+            cost -= 5
     return cost
+
+#"""
 
 def search(graph, state, is_goal, limit, heuristic):
 
@@ -136,7 +161,7 @@ def search(graph, state, is_goal, limit, heuristic):
     # When you find a path to the goal return a list of tuples [(state, action)]
     # representing the path. Each element (tuple) of the list represents a state
     # in the path and the action that took you to this state
-
+    total_path_cost = 0
     while time() - start_time < limit:
         if is_goal(state):
             return state
@@ -146,7 +171,9 @@ def search(graph, state, is_goal, limit, heuristic):
         for pos in possible:
             f_value = heuristic(pos[1]) + pos[2]
             heapq.heappush(queue, (f_value, pos[1]))
-        state = heapq.heappop(queue)[1]
+        pop = heapq.heappop(queue)
+        state = pop[1]
+        print(pop[0])
         
     # Failed to find a path
     print(time() - start_time, 'seconds.')
@@ -179,6 +206,7 @@ if __name__ == '__main__':
 
     # Create a function which checks for the goal
     is_goal = make_goal_checker(Crafting['Goal'])
+    Goals = Crafting['Goal']
 
     # Initialize first state from initial inventory
     state = State({key: 0 for key in Crafting['Items']})
