@@ -5,7 +5,6 @@ from timeit import default_timer as time
 
 #additional imports 
 import heapq
-import math
 
 Recipe = namedtuple('Recipe', ['name', 'check', 'effect', 'cost'])
 
@@ -91,7 +90,7 @@ def make_goal_checker(goal):
     def is_goal(state):
         # This code is used in the search process and may be called millions of times.
         for k, v in goal.items():
-            if state[k] != v:
+            if state[k] <= v:
                 return False
         return True
 
@@ -115,12 +114,18 @@ Tools = [
     "stone_axe",
     "stone_pickaxe",
     "wooden_axe",
-    "wooden_pickaxe"
+    "wooden_pickaxe",
+    "furnace"
 ]
 
 def heuristic(state):
     # Implement your heuristic here!
     cost = 0
+    for k, v in state.items():
+        if v > 9:
+            cost += 5
+        if k in Tools and v > 1:
+            cost += 10
     return cost
 
 def search(graph, state, is_goal, limit, heuristic):
@@ -179,11 +184,12 @@ if __name__ == '__main__':
     state = State({key: 0 for key in Crafting['Items']})
     state.update(Crafting['Initial'])
 
+    print('Initial: ', Crafting['Initial'])
+    print('Goal: ', Crafting['Goal']) 
     # Search for a solution
     resulting_plan = search(graph, state, is_goal, 5, heuristic)
 
     if resulting_plan:
         # Print resulting plan
-        for state, action in resulting_plan:
-            print('\t',state)
-            print(action)
+        for state, action in resulting_plan.items():
+            print(state, ": ", action)
