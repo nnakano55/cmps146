@@ -122,6 +122,8 @@ Goals = {}
 
 #"""
 
+
+
 def heuristic(state):
     cost = 0
     for k, v in state.items():
@@ -129,12 +131,12 @@ def heuristic(state):
         if k in Tools and v > 1:
             cost += 100
         elif v > 8 and not Goals.get(k):
-            cost += v
+            cost += 5 * (v - 8)
         elif Goals.get(k):
-            if Goals.get(k) + 16 <= v:
-                cost += (v - Goals.get(k))
+            if Goals.get(k) < v:
+                cost += 5 * (v - Goals.get(k))/(16 if k == 'rail' else (4 if k == 'plank' or k == 'stick' else 1))
             elif Goals.get(k) > v:
-                cost += (Goals.get(k) - v)
+                cost += 5 * (Goals.get(k) - v)/(16 if k == 'rail' else (4 if k == 'plank' or k == 'stick' else 1))
 
     return cost
 """
@@ -168,12 +170,15 @@ def search(graph, state, is_goal, limit, heuristic):
         possible = graph(state)
         queue = []
         heapq.heapify(queue)
+        #print("start")
         for pos in possible:
             f_value = heuristic(pos[1]) + pos[2]
             heapq.heappush(queue, (f_value, pos[1]))
+            #print(pos[0], ": ", f_value)
+        #print("end")
         pop = heapq.heappop(queue)
         state = pop[1]
-        print(pop[0])
+        #print(pop[0])
         
     # Failed to find a path
     print(time() - start_time, 'seconds.')
@@ -215,7 +220,7 @@ if __name__ == '__main__':
     print('Initial: ', Crafting['Initial'])
     print('Goal: ', Crafting['Goal']) 
     # Search for a solution
-    resulting_plan = search(graph, state, is_goal, 5, heuristic)
+    resulting_plan = search(graph, state, is_goal, 30, heuristic)
 
     if resulting_plan:
         # Print resulting plan
